@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "aboutme.html",
+    "href": "aboutme.html",
+    "title": "About me",
+    "section": "",
+    "text": "Background Info:\nMy name is Annabella Hines and I am a first year master of public health(MPH) student with a concentration in epidemiology. I graduated in December 2020 from UGA with my undergraduate degree in Biology with an emphasis in marine sciences. I then worked in a dermatopathology lab for approximately two years before returning to UGA to pursue my MPH this past fall. My main interests are in environmental epidemiology and vector borne diseases, but I’m eager to expand my knowledge in new and unexpected areas. My undergraduate research involved surveying Georgia for an invasive tick species and cataloging specimens and environmental data. Last semester I took the introduction to coding in R course and I have some general experience in STATA and SAS. In this course, my goals are to gain knowledge in Git, hone my skills in R, and become more well versed in the tools available for data analysis.\nQuick Picture…\n\n\n\nI’m legally obligated to throw a peace sign in every photo.\n\n\nFun Facts:\n\nI have shown and competed in dog sports for about 10 years!\nI’m obsessed with musicals of all kinds.\nI love to crochet(but I’m not very good at it yet).\n\nCool/Interesting Video:\nI am a big fan of TEDTalks, so when I came across this one I just had to watch it. Sebastian Wernicke analyzed the data available on the popularity of various talks and breaks down how to formulate the ultimate TEDTalk, from topic to color scheme and everything in between. It is about a decade old, but it is a fun watch and I hope you all found it as interesting as I did!"
+  },
+  {
+    "objectID": "coding_exercise.html",
+    "href": "coding_exercise.html",
+    "title": "R Coding Exercise",
+    "section": "",
+    "text": "Placeholder file for the future R coding exercise."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "My website and data analysis portfolio",
+    "section": "",
+    "text": "Hello\nWelcome to my website and online portfolio!!\n\nPlease use the Menu Bar above to look around.\nIt’s awesome to meet everyone and let’s have a great semester!"
+  },
+  {
+    "objectID": "tidytuesday_exercise.html",
+    "href": "tidytuesday_exercise.html",
+    "title": "Tidy Tuesday Exercise",
+    "section": "",
+    "text": "Placeholder file for the future Tidy Tuesday exercise."
+  },
+  {
+    "objectID": "visualization_exercise.html",
+    "href": "visualization_exercise.html",
+    "title": "Visualization Exercise",
+    "section": "",
+    "text": "Placeholder file for the future visualization exercise."
+  }
+]
