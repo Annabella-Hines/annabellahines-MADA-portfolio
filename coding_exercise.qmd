@@ -5,8 +5,7 @@ output:
     toc: FALSE
 ---
 
-Placeholder file for the future R coding exercise.
-Loading and checking data
+##Loading and checking data
 ```{r}
 #load dslabs, dplyr, and ggplot2 packages
 library(dslabs)
@@ -24,7 +23,7 @@ summary(gapminder)
 #determine the type of object gapminder is
 class(gapminder)
 ```
-Processing Data
+##Processing Data
 ```{r}
 #filter gapminder data for only countries in the continent of Africa and assign to africadata
 africadata <- filter(gapminder, continent=="Africa")
@@ -43,7 +42,7 @@ summary(popandlife)
 str(infandlife)
 summary(infandlife)
 ```
-Initial Plotting
+##Initial Plotting
 ```{r}
 #create a scatterplot of infant_mortality and life_expectancy
 ggplot(data=infandlife, aes(x=infant_mortality, y=life_expectancy))+geom_point()+
@@ -80,7 +79,7 @@ ggplot(data=infandlife2, aes(x=infant_mortality, y=life_expectancy))+geom_point(
 #create a scatterplot of popandlife2
 ggplot(data=popandlife2, aes(x=log(population), y=life_expectancy))+ geom_point()+xlab("Log Population")+ylab("Life Expectancy")+labs(title="Population vs. Life Expectancy in 2000")
 ```
-
+##Fit
 ```{r}
 #fit life expectancy and infant mortality
 fit1<- lm(life_expectancy~infant_mortality, infandlife2)
