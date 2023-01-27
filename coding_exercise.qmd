@@ -107,3 +107,4 @@ summary(fit3)
 ```
 
 This shows that there was a significance difference in life expectancy in the Northern Africa region.
+
