@@ -91,3 +91,19 @@ summary(fit1)
 summary(fit2)
 ```
 Infant mortality and life expectancy are significantly correlated at the 0.05 level but population and life expectancy are not.
+
+# This section is added by Christian Okitondo
+
+## Let's create a plot assessing the relationship between life expectancy and mortality in 2000 and look at the impacted region
+```{r}
+ggplot(africadata_2000, aes(x=infant_mortality, y=life_expectancy, color=region)) +geom_point()
+```
+
+
+## Let's run another regression prediction the average life expectancy in each region
+```{r}
+fit3 <- lm(life_expectancy ~ region, data = africa2000)
+summary(fit3)
+```
+
+This shows that there was a significance difference in life expectancy in the Northern Africa region.
