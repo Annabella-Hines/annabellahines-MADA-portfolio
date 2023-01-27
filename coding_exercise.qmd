@@ -96,7 +96,7 @@ Infant mortality and life expectancy are significantly correlated at the 0.05 le
 
 ## Let's create a plot assessing the relationship between life expectancy and mortality in 2000 and look at the impacted region
 ```{r}
-ggplot(africadata_2000, aes(x=infant_mortality, y=life_expectancy, color=region)) +geom_point()
+ggplot(africa2000, aes(x=infant_mortality, y=life_expectancy, color=region)) +geom_point()
 ```
 
 
