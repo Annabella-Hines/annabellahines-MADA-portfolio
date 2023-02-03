@@ -46,6 +46,74 @@ describe(botulismdata)
 ```
 Save as RDS file
 ```{r}
-saveRDS(botulismdata, file="cleanbotulismdata")
+saveRDS(botulismdata, file="cleanbotulismdata.RData")
 ```
 
+
+## Abbie's Work
+**1: Load in Data**
+```{r}
+AKbotulism<-readRDS("cleanbotulismdata.RData") #load() the dataset was shooting errors so I renamed it to read it in
+head(AKbotulism)
+```
+I'm interested to see how the toxin types and counts varied by year.
+
+**Grouped By State**
+
+```{r}
+library(ggplot2)
+ggplot()+
+  geom_line(aes(x=Year, y=Count, group = State), data=AKbotulism, alpha = 0.2)+
+  facet_wrap(.~`Toxin Type`) + 
+  theme_bw()
+
+```
+
+Well that was confusing, let's try it grouped by Transmission Type.
+
+**Grouped by Transmission Type**
+
+```{r}
+ggplot()+
+  geom_line(aes(x=Year, y=Count, group = `Transmission Type`), data=AKbotulism, alpha = 0.2)+
+  facet_wrap(.~`Toxin Type`) + 
+  theme_bw()
+
+```
+
+We can see some better patterns here if we squint really hard, but faceting by toxin type allows for too many options to get a good idea of what is happening within the data. Toxins A, B, E, and Unknown seem to be the most prevelant types, so I want to focus in on them 
+
+### Subset for specific toxins
+
+```{r}
+ABE<-AKbotulism%>%
+  filter(`Toxin Type` %in% c("A", "B", "E", "Unknown"))
+
+```
+
+Let's try that again:
+
+**Grouped by Transmission Type**
+
+```{r}
+ggplot()+
+  geom_line(aes(x=Year, y=Count, group = `Transmission Type`), data=ABE, alpha = 0.35)+
+  facet_wrap(.~`Toxin Type`) + 
+  theme_bw()
+
+```
+Awesome, now we can start to see the patterns and the ranges better among the data. It seems that Type A is popular and only continues to grow in prevalence. B seems to as well though on a smaller scale. I'm not really sure what's going on with E, and the number of unknown seems to be decreasing. This may be because these cases are becoming better identified and may account for some of the increase in A and B types (all right around 1975).
+
+While I grouped by Transmission Type to better see the data, that grouping isn't telling us much at the moments, so let's see if there's any patterns within it. 
+
+```{r}
+ggplot()+
+  geom_point(aes(x=Year, y=Count, color = `Transmission Type`), data=ABE, alpha = 0.35)+
+  facet_wrap(.~`Toxin Type`) + 
+  theme_bw()
+
+```
+
+This is pretty cool! Most of the new cases for A and B are transmitted by infants with foodborne transmission nearly dying out overnight. The number of unknown types of foodborne transmission also snuffed out around the same time - I wonder if there was new food safety legislation in place that would explain the mass decrease. However, Type E remains mainly foodborne and pretty constant across time. Also with the drastic increase in infant transmission around when foodborne transmission ended I wonder if the classifications for transmission were changed. There's no instance of "infant" transmission until 1975. 
+
+I don't know enough about botulism to provide more commentary, but this posed some interesting questions I'll keep in mind if this topic arises again. 
