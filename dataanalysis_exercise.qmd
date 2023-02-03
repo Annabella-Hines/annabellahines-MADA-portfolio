@@ -1,3 +1,4 @@
+**Introduction**
 This data is from the CDC website at https://data.cdc.gov/Foodborne-Waterborne-and-Related-Diseases/Botulism/66i6-hisz
 and has counts of confirmed botulism cases in the United States by state, year, type of botulism toxin, and transmission type. I will be cleaning an working with all 5 variables.
 ```{r}
@@ -9,8 +10,9 @@ botulismdata<-read_csv("dataanalysis-exercise/rawdata/Botulism.csv")
 str(botulismdata)
 summary(botulismdata)
 ```
-BotType and ToxinType are both classified as characters but would be better represented as factors so I will change them.
 
+**Change to Factors**
+BotType and ToxinType are both classified as characters but would be better represented as factors so I will change them.
 ```{r}
 #change BotType and ToxinType to factor variables
 botulismdata$BotType <- as.factor(botulismdata$BotType)
@@ -18,6 +20,8 @@ botulismdata$ToxinType <- as.factor(botulismdata$ToxinType)
 #confirm they were both changed
 str(botulismdata)
 ```
+
+**Rename Columns**
 Next, I think the BotType and ToxinType variables can be renamed to be a little clearer.
 ```{r}
 #Rename the BotType and ToxinType variables
@@ -26,10 +30,14 @@ botulismdata <- rename(botulismdata, "Toxin Type" = "ToxinType")
 #Confirm the names changed correctly
 str(botulismdata)
 ```
+
+**Check for Missing Data**
 ```{r}
 #Check is there is any missing data
 colSums(is.na(botulismdata))
 ```
+
+**Remove NAs**
 All the NA entries appear to be in the state column. There are 2280 observations so I decided to just remove the 34 NA values since they don't make up a large percentage of the data overall.
 ```{r}
 #Drop the NA values in the state column
@@ -44,7 +52,7 @@ library(psych)
 summary(botulismdata)
 describe(botulismdata)
 ```
-Save as RDS file
+**Save as RDS file**
 ```{r}
 saveRDS(botulismdata, file="cleanbotulismdata.RData")
 ```
