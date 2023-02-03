@@ -14,6 +14,34 @@
     "text": "##Loading and checking data\n##Processing Data\n##Initial Plotting\n##Fit\nInfant mortality and life expectancy are significantly correlated at the 0.05 level but population and life expectancy are not."
   },
   {
+    "objectID": "coding_exercise.html#lets-create-a-plot-assessing-the-relationship-between-life-expectancy-and-mortality-in-2000-and-look-at-the-impacted-region",
+    "href": "coding_exercise.html#lets-create-a-plot-assessing-the-relationship-between-life-expectancy-and-mortality-in-2000-and-look-at-the-impacted-region",
+    "title": "R Coding Exercise",
+    "section": "Let’s create a plot assessing the relationship between life expectancy and mortality in 2000 and look at the impacted region",
+    "text": "Let’s create a plot assessing the relationship between life expectancy and mortality in 2000 and look at the impacted region\n\nggplot(africa2000, aes(x=infant_mortality, y=life_expectancy, color=region)) +geom_point()"
+  },
+  {
+    "objectID": "coding_exercise.html#lets-run-another-regression-prediction-the-average-life-expectancy-in-each-region",
+    "href": "coding_exercise.html#lets-run-another-regression-prediction-the-average-life-expectancy-in-each-region",
+    "title": "R Coding Exercise",
+    "section": "Let’s run another regression prediction the average life expectancy in each region",
+    "text": "Let’s run another regression prediction the average life expectancy in each region\n\nfit3 <- lm(life_expectancy ~ region, data = africa2000)\nsummary(fit3)\n\n\nCall:\nlm(formula = life_expectancy ~ region, data = africa2000)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-16.056  -4.138  -0.500   3.013  17.744 \n\nCoefficients:\n                      Estimate Std. Error t value Pr(>|t|)    \n(Intercept)            53.6563     1.6203  33.115  < 2e-16 ***\nregionMiddle Africa    -0.8562     2.8065  -0.305    0.762    \nregionNorthern Africa  17.4604     3.1026   5.628 1.04e-06 ***\nregionSouthern Africa  -2.1562     3.3206  -0.649    0.519    \nregionWestern Africa    3.1812     2.2915   1.388    0.172    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 6.481 on 46 degrees of freedom\nMultiple R-squared:  0.4601,    Adjusted R-squared:  0.4131 \nF-statistic:   9.8 on 4 and 46 DF,  p-value: 8.074e-06\n\n\nThis shows that there was a significance difference in life expectancy in the Northern Africa region."
+  },
+  {
+    "objectID": "dataanalysis_exercise.html",
+    "href": "dataanalysis_exercise.html",
+    "title": "Data Analysis Exercise - Botulism",
+    "section": "",
+    "text": "Introduction\nThis data is from the CDC website at https://data.cdc.gov/Foodborne-Waterborne-and-Related-Diseases/Botulism/66i6-hisz and has counts of confirmed botulism cases in the United States by state, year, type of botulism toxin, and transmission type. I will be cleaning an working with all 5 variables.\nChange to Factors\nBotType and ToxinType are both classified as characters but would be better represented as factors so I will change them.\nRename Columns\nNext, I think the BotType and ToxinType variables can be renamed to be a little clearer.\nCheck for Missing Data\nRemove NAs\nAll the NA entries appear to be in the state column. There are 2280 observations so I decided to just remove the 34 NA values since they don’t make up a large percentage of the data overall.\nSave as RDS file"
+  },
+  {
+    "objectID": "dataanalysis_exercise.html#abbies-work",
+    "href": "dataanalysis_exercise.html#abbies-work",
+    "title": "Data Analysis Exercise - Botulism",
+    "section": "Abbie’s Work",
+    "text": "Abbie’s Work\n1: Load in Data\n\nAKbotulism<-readRDS(\"cleanbotulismdata.RData\") #load() the dataset was shooting errors so I renamed it to read it in\nhead(AKbotulism)\n\n# A tibble: 6 × 5\n  State   Year `Transmission Type` `Toxin Type` Count\n  <chr>  <dbl> <fct>               <fct>        <dbl>\n1 Alaska  1947 Foodborne           Unknown          3\n2 Alaska  1948 Foodborne           Unknown          4\n3 Alaska  1950 Foodborne           E                5\n4 Alaska  1952 Foodborne           E                1\n5 Alaska  1956 Foodborne           E                5\n6 Alaska  1959 Foodborne           E               10\n\n\nI’m interested to see how the toxin types and counts varied by year.\nGrouped By State\n\nlibrary(ggplot2)\nggplot()+\n  geom_line(aes(x=Year, y=Count, group = State), data=AKbotulism, alpha = 0.2)+\n  facet_wrap(.~`Toxin Type`) + \n  theme_bw()\n\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n\n\n\n\n\nWell that was confusing, let’s try it grouped by Transmission Type.\nGrouped by Transmission Type\n\nggplot()+\n  geom_line(aes(x=Year, y=Count, group = `Transmission Type`), data=AKbotulism, alpha = 0.2)+\n  facet_wrap(.~`Toxin Type`) + \n  theme_bw()\n\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n`geom_line()`: Each group consists of only one observation.\nℹ Do you need to adjust the group aesthetic?\n\n\n\n\n\nWe can see some better patterns here if we squint really hard, but faceting by toxin type allows for too many options to get a good idea of what is happening within the data. Toxins A, B, E, and Unknown seem to be the most prevelant types, so I want to focus in on them\n\nSubset for specific toxins\n\nABE<-AKbotulism%>%\n  filter(`Toxin Type` %in% c(\"A\", \"B\", \"E\", \"Unknown\"))\n\nLet’s try that again:\nGrouped by Transmission Type\n\nggplot()+\n  geom_line(aes(x=Year, y=Count, group = `Transmission Type`), data=ABE, alpha = 0.35)+\n  facet_wrap(.~`Toxin Type`) + \n  theme_bw()\n\n\n\n\nAwesome, now we can start to see the patterns and the ranges better among the data. It seems that Type A is popular and only continues to grow in prevalence. B seems to as well though on a smaller scale. I’m not really sure what’s going on with E, and the number of unknown seems to be decreasing. This may be because these cases are becoming better identified and may account for some of the increase in A and B types (all right around 1975).\nWhile I grouped by Transmission Type to better see the data, that grouping isn’t telling us much at the moments, so let’s see if there’s any patterns within it.\n\nggplot()+\n  geom_point(aes(x=Year, y=Count, color = `Transmission Type`), data=ABE, alpha = 0.35)+\n  facet_wrap(.~`Toxin Type`) + \n  theme_bw()\n\n\n\n\nThis is pretty cool! Most of the new cases for A and B are transmitted by infants with foodborne transmission nearly dying out overnight. The number of unknown types of foodborne transmission also snuffed out around the same time - I wonder if there was new food safety legislation in place that would explain the mass decrease. However, Type E remains mainly foodborne and pretty constant across time. Also with the drastic increase in infant transmission around when foodborne transmission ended I wonder if the classifications for transmission were changed. There’s no instance of “infant” transmission until 1975.\nI don’t know enough about botulism to provide more commentary, but this posed some interesting questions I’ll keep in mind if this topic arises again."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "My website and data analysis portfolio",
@@ -33,19 +61,5 @@
     "title": "Visualization Exercise",
     "section": "",
     "text": "Placeholder file for the future visualization exercise."
-  },
-  {
-    "objectID": "coding_exercise.html#lets-create-a-plot-assessing-the-relationship-between-life-expectancy-and-mortality-in-2000-and-look-at-the-impacted-region",
-    "href": "coding_exercise.html#lets-create-a-plot-assessing-the-relationship-between-life-expectancy-and-mortality-in-2000-and-look-at-the-impacted-region",
-    "title": "R Coding Exercise",
-    "section": "Let’s create a plot assessing the relationship between life expectancy and mortality in 2000 and look at the impacted region",
-    "text": "Let’s create a plot assessing the relationship between life expectancy and mortality in 2000 and look at the impacted region\n\nggplot(africa2000, aes(x=infant_mortality, y=life_expectancy, color=region)) +geom_point()"
-  },
-  {
-    "objectID": "coding_exercise.html#lets-run-another-regression-prediction-the-average-life-expectancy-in-each-region",
-    "href": "coding_exercise.html#lets-run-another-regression-prediction-the-average-life-expectancy-in-each-region",
-    "title": "R Coding Exercise",
-    "section": "Let’s run another regression prediction the average life expectancy in each region",
-    "text": "Let’s run another regression prediction the average life expectancy in each region\n\nfit3 <- lm(life_expectancy ~ region, data = africa2000)\nsummary(fit3)\n\n\nCall:\nlm(formula = life_expectancy ~ region, data = africa2000)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-16.056  -4.138  -0.500   3.013  17.744 \n\nCoefficients:\n                      Estimate Std. Error t value Pr(>|t|)    \n(Intercept)            53.6563     1.6203  33.115  < 2e-16 ***\nregionMiddle Africa    -0.8562     2.8065  -0.305    0.762    \nregionNorthern Africa  17.4604     3.1026   5.628 1.04e-06 ***\nregionSouthern Africa  -2.1562     3.3206  -0.649    0.519    \nregionWestern Africa    3.1812     2.2915   1.388    0.172    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 6.481 on 46 degrees of freedom\nMultiple R-squared:  0.4601,    Adjusted R-squared:  0.4131 \nF-statistic:   9.8 on 4 and 46 DF,  p-value: 8.074e-06\n\n\nThis shows that there was a significance difference in life expectancy in the Northern Africa region."
   }
 ]

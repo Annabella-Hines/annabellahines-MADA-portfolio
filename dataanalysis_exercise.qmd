@@ -1,4 +1,10 @@
+---
+title: "Data Analysis Exercise - Botulism"
+format: html
+editor: visual
+---
 **Introduction**
+
 This data is from the CDC website at https://data.cdc.gov/Foodborne-Waterborne-and-Related-Diseases/Botulism/66i6-hisz
 and has counts of confirmed botulism cases in the United States by state, year, type of botulism toxin, and transmission type. I will be cleaning an working with all 5 variables.
 ```{r}
@@ -12,6 +18,7 @@ summary(botulismdata)
 ```
 
 **Change to Factors**
+
 BotType and ToxinType are both classified as characters but would be better represented as factors so I will change them.
 ```{r}
 #change BotType and ToxinType to factor variables
@@ -22,6 +29,7 @@ str(botulismdata)
 ```
 
 **Rename Columns**
+
 Next, I think the BotType and ToxinType variables can be renamed to be a little clearer.
 ```{r}
 #Rename the BotType and ToxinType variables
@@ -38,6 +46,7 @@ colSums(is.na(botulismdata))
 ```
 
 **Remove NAs**
+
 All the NA entries appear to be in the state column. There are 2280 observations so I decided to just remove the 34 NA values since they don't make up a large percentage of the data overall.
 ```{r}
 #Drop the NA values in the state column
@@ -45,14 +54,15 @@ botulismdata <- drop_na(botulismdata, State)
 #Confirm number of observations dropped from 2280 to 2246
 str(botulismdata)
 ```
+
 ```{r}
 ##install and load psych package to use describe to see a summary of data, also run summary
-install.packages("psych")
 library(psych)
 summary(botulismdata)
 describe(botulismdata)
 ```
 **Save as RDS file**
+
 ```{r}
 saveRDS(botulismdata, file="cleanbotulismdata.RData")
 ```
