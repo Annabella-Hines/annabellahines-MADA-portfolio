@@ -42,8 +42,8 @@ Plot1 <- ggplot(fight, aes(x=sec_duration, y=bpm, col=school, text= paste(school
    theme(panel.background = element_rect(fill = 'white'),
           panel.grid.major = element_line(color = 'grey'),
           panel.grid.minor = element_line(color = 'grey'))+
-  annotate("text", x=140, y=120, label="AVERAGE")+
-  annotate("text", x=71, y=100, label="AVERAGE", angle=90)
+  annotate("text", x=140, y=130, label="AVERAGE", size=3)+
+  annotate("text", x=71, y=100, label="AVERAGE", angle=90, size=3)
 Plot1
 ```
 I started with plotting the basic parameters and then started tweaking things to make them more similar to the original. I started with the point size and transparency, then added axis labels and the average lines for bpm and duration. I altered the scale of both axes, added the title, changed the font, and added quadrant labels as well. Lastly I changed the background grid to how the original looked. As I was going along, I would view the graph and see how it was looking, then add to the code. I can see how this may be harder to follow than if I broke it down into separate steps.
