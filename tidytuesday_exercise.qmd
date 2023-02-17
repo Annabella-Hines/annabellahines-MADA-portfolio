@@ -4,5 +4,107 @@ output:
   html_document:
     toc: FALSE
 ---
+This data is the TidyTuesday data shared for this week of 2023-02-14. It contains information on the age gaps between actors portraying a romantic relationship in 1155 Hollywood movies. The data can be found through the TidyTuesday github repository at https://github.com/rfordatascience/tidytuesday/tree/master/data/2023/2023-02-14.
 
-Placeholder file for the future Tidy Tuesday exercise.
+# Load Packages
+```{r}
+library(tidyverse)
+library(plotly)
+```
+
+# Load Data
+```{r}
+tuesdata <- tidytuesdayR::tt_load('2023-02-14')
+
+age_gaps <- tuesdata$age_gaps
+```
+# Explore Data
+```{r}
+str(age_gaps)
+```
+```{r}
+summary(age_gaps)
+glimpse(age_gaps)
+```
+
+
+Next I will check for any missing variables in the dataset.
+```{r}
+anyNA(age_gaps)
+```
+There is no missing data.
+
+
+Here I did a basic scatter plot to see the age different by release year.
+```{r}
+scatter<- ggplot(age_gaps, aes(x=release_year, y=age_difference, text= paste(movie_name, "<br>"))) + geom_point()+
+  labs(title="Age Difference by Release Year")+xlab("Release Year")+ylab("Age Difference")
+scatter
+```
+Overall there were more recent movies in the data than older movies, which may partially skew the age gap distributions just from having less data to work from for the pre 1980's movies. I wanted to try to make the graph interactive with a hover box with the movie title just for practice.
+```{r}
+library(plotly)
+ggplotly(scatter, tooltip=c("text"))
+```
+
+I decided to make another graph to see the average age gap each release year to hopefully get more clarity.
+```{r}
+avg <-age_gaps %>% group_by(release_year) %>% summarize(year_avg = mean(age_difference))
+ggplot(avg, aes(x=release_year, y=year_avg))+ geom_line(color="dark blue")+geom_point()+xlab("Release Year")+ylab("Average Age Difference")+labs(title="Average Age Difference by Release Year")
+```
+This graph with the average age differences by year shows that the older movies tended to have a larger age gap on average between the actors, but there doesn't appear to be a super strong trend.
+
+
+
+```{r}
+ggplot(age_gaps, aes(x=age_difference))+ geom_bar()+labs(title="Frequency of Age Gaps")+xlab("Age Difference in Years")
+```
+From this distribution it seems most of the movies had age differences of less than 10 years, with the frequency steadily decreasing the larger the age gap became.
+
+
+The first actor is the older one in the data set, so I decided to look at the age distribution by gender for the older actors and compare it to the younger ones.
+```{r}
+box1<-ggplot(age_gaps, aes(x=character_1_gender, y=actor_1_age))+geom_boxplot(aes(fill=character_1_gender))+
+  xlab("Gender")+ylab("Age")+
+  labs(title="Older Actor Age Distribution by Gender")
+box1
+```
+
+
+```{r}
+box2<-ggplot(age_gaps, aes(x=character_2_gender, y=actor_2_age))+geom_boxplot(aes(fill=character_2_gender))+labs(title="Younger Actor Age Distribution by Gender")+xlab("Gender")+ylab("Age")
+box2
+```
+
+
+It seems that for the older actors in the age difference pairs that the men had an older age distribution than the women while it was relatively the same for the younger actors in the pairs. I then want to see if the older actors were typically one gender or the other.
+```{r}
+actor1bar<-ggplot(age_gaps, aes(x=character_1_gender))+geom_bar(aes(fill=character_1_gender))+xlab("Gender")+ylab("Count")
+actor1bar
+age_gaps %>% pull(character_1_gender) %>% table()
+```
+The bar graph showed that the large majority of the older actors were men so I checked the actual numbers and found out that 941 were men and 214 were women.
+```{r}
+actor2bar<-ggplot(age_gaps, aes(x=character_2_gender))+geom_bar(aes(fill=character_2_gender))+xlab("Gender")+ylab("Count")
+actor2bar
+age_gaps %>% pull(character_2_gender) %>% table()
+```
+
+
+
+The frequency is reversed for the younger actors with the majority of them being women with 940 women and 215 men. This the made me wonder how many non-heterosexual pairings there were.
+```{r}
+mm<- age_gaps %>% filter(character_1_gender=="man") %>% filter(character_2_gender=="man") %>% count()
+ff<- age_gaps %>% filter(character_1_gender=="woman") %>% filter(character_2_gender=="woman") %>% count()
+mm
+ff
+```
+There appears to be 12 movies with both actors being male and 11 with both actors being female.
+
+I'm now kind of curious about which movie had the largest age gap and also which had the smallest.
+```{r}
+age_gaps %>% pull(age_difference) %>% range()
+age_gaps %>% filter(age_difference==52)
+age_gaps %>% filter(age_difference==0)
+```
+The movie with the age difference of 52 was Harold and Maude released in 1971. However there were 30 movies where the age difference was not even an entire year.
