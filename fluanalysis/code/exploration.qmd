@@ -1,0 +1,56 @@
+---
+title: "Flu Analysis Exploration"
+output:
+  html_document:
+    toc: FALSE
+---
+
+## Load Packages
+
+```{r}
+#load in necessary packages
+library(tidyverse)
+```
+
+## Load Clean Data
+
+```{r}
+#load in the cleaned data
+flurevise<- readRDS(file = "../data/flurevised.rds")
+flurevise
+```
+
+
+```{r}
+#get a summary of the variables
+flurevise %>% select(BodyTemp, Nausea) %>% summary()
+```
+
+## Data Exploration 
+
+```{r}
+#create a histogram of the continuous variable BodyTemp 
+ggplot(flurevise, aes(x=BodyTemp))+geom_histogram()+labs(title="Body Temperature Frequencies", x="Body Temperature", y="Count")+theme_bw()
+```
+The distribution looks fairly normal with most of the temps at normal human ranges from around 98-99 degrees, with nothing looking implausible. There are a few across the 100-103 range which could be considered indicative of a fever.
+
+```{r}
+ggplot(flurevise, aes(x=Nausea, y=BodyTemp, fill=Nausea))+geom_boxplot()
+```
+Here I was checking how the two outcomes of interest compared to each other in a box plot, they have a pretty even body temperature distribution between those that reported nausea and those that didn't. 
+
+
+```{r}
+ggplot(flurevise, aes(x=SwollenLymphNodes, y=BodyTemp, fill=SwollenLymphNodes))+geom_boxplot()+labs(title = "Body Temperature Distribution by Lymph Node Status", x="Swollen Lymph Nodes", y="Body Temperature")
+```
+It seems from a glance that body temperatures were slightly higher in people who reported no swollen lymph nodes.
+
+```{r}
+ggplot(flurevise, aes(x=CoughIntensity, y=BodyTemp, fill=CoughIntensity))+geom_boxplot()+labs(x="Cough Intensity", y="Body Temperature", title="Body Temperature Distribution by Cough Intensity")
+```
+Body temperature tended to trend higher with more intense coughing.
+
+```{r}
+ggplot(flurevise, aes(x=RunnyNose, y=BodyTemp, fill=RunnyNose))+geom_boxplot()+labs(title="Body Temperature Distribution by Presence of Runny Nose", x="Runny Nose Status", y="Body Temperature")
+```
+

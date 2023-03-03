@@ -1,0 +1,40 @@
+---
+title: "Flu Analysis Wrangling"
+output:
+  html_document:
+    toc: FALSE
+---
+
+
+## Load Packages
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+
+## Load Raw Data
+
+
+```{r}
+flu<- readRDS("../data/SympAct_Any_Pos.Rda")
+```
+
+## Clean Data
+
+```{r}
+#selecting for variables that don't contain the following character strings of Score, Total, FluA, FluB, Dxname, Activity, or Unique.Visit.
+flurevised <- flu %>% select(-matches("Score|Total|FluA|FluB|Dxname|Activity|Unique.visit"))
+#remove NAs
+flurev <- flurevised %>% drop_na()
+#confirm correct number of variables(32) and observations(730)
+glimpse(flurev)
+```
+## Save Cleaned Data 
+
+```{r}
+#save to RDS file
+saveRDS(flurev, file="../data/flurevised.rds")
+```
+

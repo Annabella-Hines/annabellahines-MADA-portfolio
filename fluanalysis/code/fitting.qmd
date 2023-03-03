@@ -1,0 +1,72 @@
+---
+title: "Fitting Flu Analysis"
+output:
+  html_document:
+    toc: FALSE
+---
+## Load Packages
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(performance)
+```
+
+
+## Load Data
+```{r}
+#loading cleaned data
+flufinal<- readRDS(file = "../data/flurevised.rds")
+```
+
+## Fitting
+First I am going to run a linear regression using the main predictor of interest, RunnyNose, against the main continuous outcome of interest, BodyTemp.
+ 
+```{r}
+lm_mod <- linear_reg() %>% set_engine("lm")
+fitlm1 <- lm_mod %>%
+  fit(BodyTemp ~ RunnyNose, data=flufinal)
+#checking results
+fitlm1
+tidy(fitlm1)
+glance(fitlm1)
+```
+From this regression it seems that having a runny nose was negatively correlated with body temperature.
+
+Next we'll do another linear model with Body Temperature as the outcome but include all the predictors in the data set.
+```{r}
+fitlm2 <- lm_mod %>% fit(BodyTemp~., data=flufinal)
+#checking results
+tidy(fitlm2)
+glance(fitlm2)
+```
+
+Now we will compare th performance of the two models.
+```{r}
+compare_performance(fitlm1, fitlm2)
+```
+According to the R2 value, the second fit with all of the predictors included was better than the first fit with only RunnyNose as a predictor.
+
+
+Next we'll take a look at our other outcome of interest, Nausea. We'll run a logistic regression with RunnyNose as the predictor.
+```{r}
+glm_mod <- logistic_reg() %>% set_engine("glm")
+fluglm1 <- glm_mod %>% fit(Nausea ~ RunnyNose, data=flufinal)
+#checking results
+tidy(fluglm1)
+glance(fluglm1)
+```
+
+Then we'll run another logistic regression with all the predictors of the data and nausea still as the outcome.
+```{r}
+fluglm2<- glm_mod %>% fit(Nausea ~., data=flufinal)
+#checking results
+tidy(fluglm2)
+glance(fluglm2)
+```
+
+Then we'll compare the performance of the two logistic models.
+```{r}
+compare_performance(fluglm1, fluglm2)
+```
+
+The global model seems to be a better predictor of nausea than just the presence or absence of a runny nose.
