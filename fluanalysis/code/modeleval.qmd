@@ -1,0 +1,67 @@
+
+
+
+## Loading packages
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+```
+## Load Data
+
+```{r}
+#load in data set
+fludata<-readRDS("../data/flurevised.rds")
+```
+
+## Data Splitting
+
+```{r}
+set.seed(222)
+data_split <- initial_split(fludata, prop=3/4)
+train_data <- training(data_split)
+test_data  <- testing(data_split)
+```
+
+## Create Recipe
+
+```{r}
+#create recipe
+flu_rec <- 
+  recipe(Nausea ~ ., data = train_data) 
+#model specification
+lr_mod <- 
+  logistic_reg() %>% 
+  set_engine("glm")
+#workflow
+flu_wflow <- 
+  workflow() %>% 
+  add_model(lr_mod) %>% 
+  add_recipe(flu_rec)
+flu_wflow
+```
+
+```{r}
+#create the fit from the established workflow
+flu_fit <- 
+  flu_wflow %>% 
+  fit(data = train_data)
+#check prediction to evaluate test data
+predict(flu_fit, test_data)
+```
+
+## Evaluate Performance
+
+```{r}
+#Augment to return probabilities rather than yes or no
+flu_aug <- 
+  augment(flu_fit, test_data)
+#Use roc_curve to evaluate model
+flu_aug %>% 
+  roc_curve(truth = Nausea, .pred_No) %>% 
+  autoplot()
+#Use roc_aug to quantify area under roc-curve
+flu_aug %>% 
+  roc_auc(truth = Nausea, .pred_No)
+```
+
