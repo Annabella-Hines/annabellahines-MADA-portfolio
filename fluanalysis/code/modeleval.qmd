@@ -1,4 +1,9 @@
-
+---
+title: "Flu Analysis Model Evaluation"
+output:
+  html_document:
+    toc: FALSE
+---
 
 
 ## Loading packages
@@ -64,4 +69,38 @@ flu_aug %>%
 flu_aug %>% 
   roc_auc(truth = Nausea, .pred_No)
 ```
+According to the ROC metric, this model is useful as it is over 0.7 at 0.724.
 
+## Make model with Main Predictor of Interest
+
+```{r}
+#recipe
+flu_runnynose <- 
+  recipe(Nausea ~ RunnyNose, data = train_data) 
+#workflow
+flu_wflow_runnynose <- 
+  workflow() %>% 
+  add_model(lr_mod) %>% 
+  add_recipe(flu_runnynose)
+#create fit
+flu_runnynose_fit <- 
+  flu_wflow_runnynose %>% 
+  fit(data = train_data)
+```
+
+## Evaluate Performance
+
+```{r}
+#Augment to return probabilities rather than yes or no
+flu_runnynose_aug <- 
+  augment(flu_runnynose_fit, test_data)
+#Use roc_curve to evaluate model
+flu_runnynose_aug %>% 
+  roc_curve(truth = Nausea, .pred_No) %>% 
+  autoplot()
+#Use roc_aug to quantify area under roc-curve
+flu_runnynose_aug %>% 
+  roc_auc(truth = Nausea, .pred_No)
+```
+
+Since the ROC is estimated to be 0.466, it is not a well performing model according to this metric.
