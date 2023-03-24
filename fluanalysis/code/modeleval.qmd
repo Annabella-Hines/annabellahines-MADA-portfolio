@@ -5,13 +5,14 @@ output:
     toc: FALSE
 ---
 
-
 ## Loading packages
+
 ```{r}
 library(tidyverse)
 library(tidymodels)
 library(skimr)
 ```
+
 ## Load Data
 
 ```{r}
@@ -69,6 +70,7 @@ flu_aug %>%
 flu_aug %>% 
   roc_auc(truth = Nausea, .pred_No)
 ```
+
 According to the ROC metric, this model is useful as it is over 0.7 at 0.724.
 
 ## Make model with Main Predictor of Interest
@@ -104,3 +106,105 @@ flu_runnynose_aug %>%
 ```
 
 Since the ROC is estimated to be 0.466, it is not a well performing model according to this metric.
+
+# Kelly Hatfield's Additions
+
+## Model with all predictors
+
+```{r}
+
+#create the recipe and workflow
+flu_rec_lin <- 
+  recipe(BodyTemp ~ ., data = train_data) 
+#model specification
+lin_mod <- 
+  linear_reg() %>% 
+  set_engine("lm")
+#workflow
+flu_wflow_lin <- 
+  workflow() %>% 
+  add_model(lin_mod) %>% 
+  add_recipe(flu_rec_lin)
+flu_wflow_lin
+
+
+#create the fit from the established workflow
+flu_fit_lin <- 
+  flu_wflow_lin %>% 
+  fit(data = train_data)
+#check prediction to evaluate test data
+predict(flu_fit_lin, test_data)
+
+#Augment to return probabilities 
+flu_aug_lin <- 
+  augment(flu_fit_lin, test_data)
+
+#Calculate mse
+#train model
+
+flu_aug_train_lin <- 
+  augment(flu_fit_lin, train_data)
+#RSME train
+yardstick::rmse(flu_aug_train_lin, BodyTemp, .pred)
+#RSME test
+
+yardstick::rmse(flu_aug_lin, BodyTemp, .pred)
+
+```
+
++---------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                                                                                                                   |
++===================================================================================================================================================+
+| \                                                                                                                                                 |
+| We see that the training data performed a bit better with our RMSE estimated to be 1.11 versus with the tested data at 1.15, but similar results  |
++---------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                                                                                                                   |
++---------------------------------------------------------------------------------------------------------------------------------------------------+
+
+##  Model with 1 predictor
+
+```{r}
+
+#create the recipe and workflow
+flu_rec_lin <- 
+  recipe(BodyTemp ~ RunnyNose, data = train_data) 
+#model specification
+lin_mod <- 
+  linear_reg() %>% 
+  set_engine("lm")
+#workflow
+flu_wflow_lin <- 
+  workflow() %>% 
+  add_model(lin_mod) %>% 
+  add_recipe(flu_rec_lin)
+flu_wflow_lin
+
+
+#create the fit from the established workflow
+flu_fit_lin <- 
+  flu_wflow_lin %>% 
+  fit(data = train_data)
+#check prediction to evaluate test data
+predict(flu_fit_lin, test_data)
+
+#Augment to return probabilities 
+flu_aug_lin <- 
+  augment(flu_fit_lin, test_data)
+
+#Calculate mse
+#train model
+
+flu_aug_train_lin <- 
+  augment(flu_fit_lin, train_data)
+#RSME train
+yardstick::rmse(flu_aug_train_lin, BodyTemp, .pred)
+#RSME test
+
+yardstick::rmse(flu_aug_lin, BodyTemp, .pred)
+```
+
++---------------------------------------------------------------------------------------------------------------------------------------------------+
+| \                                                                                                                                                 |
+| We see that the training data performed a bit better with our RMSE estimated to be 1.21 versus with the tested data at 1.13, but similar results  |
++===================================================================================================================================================+
++---------------------------------------------------------------------------------------------------------------------------------------------------+
