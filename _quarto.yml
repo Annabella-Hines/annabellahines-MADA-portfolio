@@ -16,6 +16,8 @@ website:
             href: ./fluanalysis/code/exploration.html
           - text: "Fitting"
             href: ./fluanalysis/code/fitting.html
+          - text: "Model Evaluation"
+            href: ./fluanalysis/code/modeleval.html
       - text: "Projects"
         menu:
           - text: "R Coding Exercise"
