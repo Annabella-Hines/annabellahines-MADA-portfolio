@@ -17,7 +17,7 @@ library(tidyverse)
 ```{r}
 #load in the cleaned data
 flurevise<- readRDS(file = "../data/flurevised.rds")
-flurevise
+glimpse(flurevise)
 ```
 
 
