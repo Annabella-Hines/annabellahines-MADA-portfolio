@@ -1,0 +1,113 @@
+---
+title: "Machine Learning"
+output:
+  html_document:
+    toc: FALSE
+---
+
+## Load Packages
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(rpart)
+library(ranger)
+library(glmnet)
+```
+
+## Read in Data
+```{r}
+#load in data set
+flu_ml<-readRDS("../data/flu_ml.rds")
+```
+
+## Setup
+```{r}
+#setting seed for reproducibility
+set.seed(123)
+#Split data with 70% in the training set stratifying on BodyTemp
+flu_split <- initial_split(data=flu_ml, strata = BodyTemp, prop=7/10)
+
+#Create data frames for the two sets:
+train_data <- training(flu_split)
+test_data  <- testing(flu_split)
+```
+
+```{r}
+#Cross-validation
+resample_object<-vfold_cv(data=train_data, v=5, repeats=5, strata=BodyTemp)
+#Recipe
+flu_ml_rec <- 
+  recipe(BodyTemp ~ ., data = train_data) %>% step_dummy(all_nominal(), -all_outcomes())
+```
+
+## Null Model
+```{r}
+#Null model recipe
+null_recipe <- recipe(BodyTemp ~1, train_data) %>% step_dummy(all_nominal(), -all_outcomes())
+#Linear regression model
+ln_mod <- linear_reg() %>% set_engine("lm") %>% set_mode("regression")
+#Workflow
+null_flow <- workflow() %>% add_model(ln_mod) %>% add_recipe(null_recipe)
+#Evaluate
+null_fit <- null_flow %>% fit(data=train_data) %>% fit_resamples(resamples=resample_object)
+null_metrics<- collect_metrics(null_fit)
+null_metrics
+#RMSE=1.21
+```
+
+## Fitting a Tree
+```{r}
+#Model Specification
+tune_spec <- 
+  decision_tree(
+    cost_complexity = tune(),
+    tree_depth = tune()
+  ) %>% 
+  set_engine("rpart") %>% 
+  set_mode("regression")
+#Grid specification
+tree_grid <- grid_regular(cost_complexity(),
+                          tree_depth(),
+                          levels = 5)
+#create workflow
+tree_wf <- workflow() %>%
+  add_model(tune_spec) %>%
+  add_formula(BodyTemp ~ .)
+#Tuning grid cross validation
+tree_res <- 
+  tree_wf %>% 
+  tune_grid(
+    resamples = resample_object,
+    grid = tree_grid
+    )
+tree_res %>% 
+  collect_metrics()
+```
+
+```{r}
+#Plotting
+tree_res %>% autoplot()
+```
+
+```{r}
+#Find and show best
+tree_res %>%
+  show_best(n=1)
+best_tree <- tree_res %>%
+  select_best(n=1)
+#RMSE = 1.19
+#Finalize workflow
+final_wf <- 
+  tree_wf %>% 
+  finalize_workflow(best_tree)
+#Final fit
+final_fit <- 
+  final_wf %>%
+  last_fit(flu_split) 
+#Final fit metrics
+final_fit %>%
+  collect_metrics()
+#Plot of final fit
+rpart.plot(extract_fit_parsnip(final_fit)$fit)
+```
+

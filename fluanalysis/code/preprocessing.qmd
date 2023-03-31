@@ -1,0 +1,39 @@
+---
+title: "Preprocessing for Machine Learning"
+output:
+  html_document:
+    toc: FALSE
+---
+
+## Load Packages
+```{r}
+#load packages
+library(tidyverse)
+library(tidymodels)
+```
+
+## Load in Data
+```{r}
+#load in data set
+fludata<-readRDS("../data/flurevised.rds")
+```
+
+
+## Edit Data
+```{r}
+#Removing Variables with yes/no observations that also are represented by a different severity variable
+flu <- fludata %>% select(-c(CoughYN, WeaknessYN, CoughYN2, MyalgiaYN))
+#Unorder the yes/no factor variables
+#Find yes/no variables with less than 50 entries in one category
+summary(flu)
+#Remove Hearing and vision
+flu_clean_ml <- flu %>% select(-c(Hearing, Vision))
+```
+
+
+## Save Data
+```{r}
+#save to RDS file
+saveRDS(flu_clean_ml, file="../data/flu_ml.rds")
+```
+
