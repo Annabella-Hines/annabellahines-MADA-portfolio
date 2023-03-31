@@ -111,3 +111,91 @@ final_fit %>%
 rpart.plot(extract_fit_parsnip(final_fit)$fit)
 ```
 
+## Fitting a LASSO
+
+```{r}
+#Build the model
+lasso_mod <- 
+  linear_reg(penalty = tune(), mixture = 1) %>% 
+  set_engine("glmnet")
+#Pull earlier recipe
+flu_ml_rec
+#Create workflow
+lasso_workflow <- 
+  workflow() %>% 
+  add_model(lasso_mod) %>% 
+  add_recipe(flu_ml_rec)
+```
+
+```{r}
+#Create tune grid
+lasso_grid <- tibble(penalty = 10^seq(-4, -1, length.out = 30))
+#Find lowest penalty values
+lasso_grid %>% top_n(-5)
+#Highest penalty values
+lasso_grid %>% top_n(5)
+```
+
+```{r}
+#Train and tune model
+lasso_res <- 
+  lasso_workflow %>% 
+  tune_grid(resample_object,
+            grid = lasso_grid,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(rmse))
+lasso_res %>% collect_metrics()
+#Plot
+lasso_res %>% autoplot()
+```
+```{r}
+#Select best performing model
+lasso_res %>% show_best()
+best_lasso<-lasso_res %>% select_best()
+best_lasso
+#Final workflow
+lasso_final<-lasso_workflow %>% finalize_workflow(best_lasso)
+#Final fit
+lasso_final_fit<-lasso_final %>% fit(train_data)
+#Plot
+x <- extract_fit_engine(lasso_final_fit)
+plot(x, "lambda")
+```
+
+## Fitting a Random Forest
+
+```{r}
+#Build model
+cores <- parallel::detectCores()
+cores
+rf_mod <- 
+  rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %>% 
+  set_engine("ranger", num.threads = cores) %>% 
+  set_mode("regression")
+#Create workflow
+rf_workflow <- 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(flu_ml_rec)
+#Parameters for tuning
+extract_parameter_set_dials(rf_mod)
+```
+
+```{r}
+#Tune grid
+rf_res <- 
+  rf_workflow %>% 
+  tune_grid(resample_object,
+            grid = 25,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(rmse))
+#Find and show best
+rf_res %>% show_best()
+rf_best <- rf_res %>% select_best()
+#Final workflow
+rf_final_wf<- rf_wf %>% finalize_workflow(rf_best)
+#Final fit
+rf_final <- rf_final_wf %>% fit(train_data)
+f_final_fit %>% extract_fit_parsnip() %>% vip(num_features=28)
+```
+
