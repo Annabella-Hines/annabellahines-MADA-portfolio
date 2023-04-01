@@ -1,0 +1,1 @@
+In order to run the coding sections in this folder, the wrangling.qmd file should be run first. Before running the machinelearning.qmd, the preprocessing file should be run to prepare the data for that step.
