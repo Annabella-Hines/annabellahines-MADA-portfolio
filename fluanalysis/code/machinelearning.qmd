@@ -207,7 +207,7 @@ vip(fx)
 
 ```{r}
 #I'm deciding to use the lasso fit as the best model because it has the lowest rmse
-final_test <- lasso_final %>% last_fit(data_split)
+final_test <- lasso_final %>% last_fit(flu_split)
 final_test %>% collect_metrics()
 ```
 
