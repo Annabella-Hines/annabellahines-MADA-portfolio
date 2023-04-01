@@ -12,6 +12,8 @@ library(tidyverse)
 library(rpart)
 library(ranger)
 library(glmnet)
+library(rpart.plot)
+library(vip)
 ```
 
 ## Read in Data
@@ -44,7 +46,7 @@ flu_ml_rec <-
 ```{r}
 #Null model recipe
 null_recipe <- recipe(BodyTemp ~1, train_data) %>% step_dummy(all_nominal(), -all_outcomes())
-#Linear regression model
+#regression model
 ln_mod <- linear_reg() %>% set_engine("lm") %>% set_mode("regression")
 #Workflow
 null_flow <- workflow() %>% add_model(ln_mod) %>% add_recipe(null_recipe)
@@ -72,7 +74,7 @@ tree_grid <- grid_regular(cost_complexity(),
 #create workflow
 tree_wf <- workflow() %>%
   add_model(tune_spec) %>%
-  add_formula(BodyTemp ~ .)
+  add_recipe(flu_ml_rec)
 #Tuning grid cross validation
 tree_res <- 
   tree_wf %>% 
@@ -80,6 +82,7 @@ tree_res <-
     resamples = resample_object,
     grid = tree_grid
     )
+#get metrics
 tree_res %>% 
   collect_metrics()
 ```
@@ -151,7 +154,7 @@ lasso_res %>% autoplot()
 ```{r}
 #Select best performing model
 lasso_res %>% show_best()
-best_lasso<-lasso_res %>% select_best()
+best_lasso<-lasso_res %>% select_best(method="rmse")
 best_lasso
 #Final workflow
 lasso_final<-lasso_workflow %>% finalize_workflow(best_lasso)
@@ -170,7 +173,7 @@ cores <- parallel::detectCores()
 cores
 rf_mod <- 
   rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %>% 
-  set_engine("ranger", num.threads = cores) %>% 
+  set_engine("ranger", num.threads = cores, importance="impurity") %>% 
   set_mode("regression")
 #Create workflow
 rf_workflow <- 
@@ -188,14 +191,23 @@ rf_res <-
   tune_grid(resample_object,
             grid = 25,
             control = control_grid(save_pred = TRUE),
-            metrics = metric_set(rmse))
+            metrics = NULL)
 #Find and show best
 rf_res %>% show_best()
 rf_best <- rf_res %>% select_best()
 #Final workflow
-rf_final_wf<- rf_wf %>% finalize_workflow(rf_best)
+rf_final_wf<- rf_workflow%>% finalize_workflow(rf_best)
 #Final fit
 rf_final <- rf_final_wf %>% fit(train_data)
-f_final_fit %>% extract_fit_parsnip() %>% vip(num_features=28)
+rf_final %>% extract_fit_parsnip() %>% vip(num_features=28)
+fx <- extract_fit_engine(rf_final)
+vip(fx)
+```
+## Fitting Test Data
+
+```{r}
+#I'm deciding to use the lasso fit as the best model because it has the lowest rmse
+final_test <- lasso_final %>% last_fit(data_split)
+final_test %>% collect_metrics()
 ```
 
