@@ -30,9 +30,11 @@ website:
             href: ./tidytuesday_exercise.html
           - text: "Data Analysis Exercise"
             href: ./dataanalysis_exercise.html
+          - text: "Tidy Tuesday 2 Exercise"
+            href: ./tidytuesday_exercise2.html
     right:
       - icon: github 
-        href: URL-TO-THIS-REPOSITORY-HERE        
+        href: https://github.com/Anna9877/annabellahines-MADA-portfolio        
 
 format:
   html:
