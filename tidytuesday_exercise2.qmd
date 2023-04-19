@@ -5,5 +5,243 @@ output:
     toc: FALSE
 ---
 
+## Load Packages
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(rpart)
+library(ranger)
+library(glmnet)
+library(rpart.plot)
+library(vip)
+```
 
-To be filled
+## Load Data
+
+```{r}
+egg  <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-11/egg-production.csv')
+cage <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-11/cage-free-percentages.csv')
+
+```
+
+## Data Exploration and Cleaning
+
+```{r}
+# getting an idea of the dimensions and classes of data
+glimpse(egg)
+glimpse(cage)
+summary(egg)
+summary(cage)
+#combine data sets by observed month
+full <- full_join(egg, cage, by="observed_month")
+```
+
+```{r}
+ggplot(egg, aes(x=observed_month, y=n_eggs, color=prod_process))+geom_point()
+```
+```{r}
+full %>% filter(prod_type=="table eggs") %>% ggplot(aes(x=observed_month, y=n_eggs))+geom_point()
+```
+
+
+```{r}
+ggplot(cage, aes(x=percent_hens, y=percent_eggs))+geom_point()
+```
+
+```{r}
+ggplot(cage, aes(x=observed_month, y=percent_hens))+geom_point()
+```
+
+
+```{r}
+ggplot(full, aes(x=prod_process, y=n_eggs))+geom_boxplot()
+```
+
+## Questions
+What factors are the most important for determining n_eggs produced?
+I want to look at how correlated various factors are with total number of eggs produced.
+
+
+
+```{r}
+#removing unnecessary column
+egg_prod <- full %>% select(-c(source.x,source.y, observed_month))
+#change prod_type and prod_process to factor variables
+egg_prod$prod_process<- as.factor(egg_prod$prod_process)
+egg_prod$prod_type<- as.factor(egg_prod$prod_type)
+#drop NAs
+egg_prod <- egg_prod %>% drop_na()
+glimpse(egg_prod)
+#set seed
+set.seed(123)
+#data split with 70% in test data and stratified on production process
+data_split <- initial_split(egg_prod, prop = 7/10, strata = prod_process) 
+#specify train and test data
+train_data <- training(data_split) 
+test_data  <- testing(data_split)
+```
+
+```{r}
+#Cross-validation
+resample<-vfold_cv(data=train_data, v=2, repeats=2, strata=prod_process)
+#Recipe
+egg_recipe <- 
+  recipe(n_eggs ~ ., data = train_data) %>% step_dummy(prod_type, prod_process)
+```
+
+
+## Null Model 
+
+```{r}
+#Null model
+null_mod <- null_model() %>%
+  set_engine("parsnip") %>%
+  set_mode("regression")
+#Null model recipe
+null_recipe <- recipe(n_eggs ~1, train_data)
+#Workflow
+null_flow <- workflow() %>% add_model(null_mod) %>% add_recipe(null_recipe)
+#Evaluate
+null_fit <- null_flow %>% fit(data=train_data) %>% fit_resamples(resamples=resample)
+null_metrics<- collect_metrics(null_fit)
+null_metrics
+```
+
+## Fitting a Tree
+```{r}
+#Model Specification
+tune_spec <- 
+  decision_tree(
+    cost_complexity = tune(),
+    tree_depth = tune()
+  ) %>% 
+  set_engine("rpart") %>% 
+  set_mode("regression")
+#Grid specification
+tree_grid <- grid_regular(cost_complexity(),
+                          tree_depth(),
+                          levels = 5)
+#create workflow
+tree_wf <- workflow() %>%
+  add_model(tune_spec) %>%
+  add_recipe(egg_recipe)
+#Tuning grid cross validation
+tree_res <- 
+  tree_wf %>% 
+  tune_grid(
+    resamples = resample,
+    grid = tree_grid
+    )
+#get metrics
+tree_res %>% 
+  collect_metrics()
+#Plotting
+tree_res %>% autoplot()
+#Find and show best
+tree_res %>%
+  show_best(n=1)
+best_tree <- tree_res %>%
+  select_best(n=1)
+#Finalize workflow
+final_wf <- 
+  tree_wf %>% 
+  finalize_workflow(best_tree)
+#Final fit
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split) 
+#Final fit metrics
+final_fit %>%
+  collect_metrics()
+final_fit %>% collect_predictions()
+final_tree <- extract_workflow(final_fit)
+final_tree
+final_tree %>% 
+  extract_fit_parsnip() %>% 
+  vip()
+```
+
+## Lasso 
+
+```{r}
+#Build the model
+lasso_mod <- 
+  linear_reg(penalty = tune(), mixture = 1) %>% 
+  set_engine("glmnet")
+#Create workflow
+lasso_workflow <- 
+  workflow() %>% 
+  add_model(lasso_mod) %>% 
+  add_recipe(egg_recipe)
+#Create tune grid
+lasso_grid <- tibble(penalty = 10^seq(-4, -1, length.out = 30))
+#Find lowest penalty values
+lasso_grid %>% top_n(-5)
+#Highest penalty values
+lasso_grid %>% top_n(5)
+#Train and tune model
+lasso_res <- 
+  lasso_workflow %>% 
+  tune_grid(resample,
+            grid = lasso_grid,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(rmse))
+lasso_res %>% collect_metrics()
+#Plot
+lasso_res %>% autoplot()
+#Select best performing model
+lasso_res %>% show_best()
+best_lasso<-lasso_res %>% select_best(method="rmse")
+best_lasso
+#Final workflow
+lasso_final<-lasso_workflow %>% finalize_workflow(best_lasso)
+#Final fit
+lasso_final_fit<-lasso_final %>% fit(train_data)
+#Plot
+x <- extract_fit_engine(lasso_final_fit)
+plot(x, "lambda")
+```
+
+## Random Forest
+
+```{r}
+#Build model
+cores <- parallel::detectCores()
+cores
+rf_mod <- 
+  rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %>% 
+  set_engine("ranger", num.threads = cores, importance="impurity") %>% 
+  set_mode("regression")
+#Create workflow
+rf_workflow <- 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(egg_recipe)
+#Parameters for tuning
+extract_parameter_set_dials(rf_mod)
+#Tune grid
+rf_res <- 
+  rf_workflow %>% 
+  tune_grid(resample,
+            grid = 25,
+            control = control_grid(save_pred = TRUE),
+            metrics = NULL)
+#Find and show best
+rf_res %>% show_best()
+rf_best <- rf_res %>% select_best()
+#Final workflow
+rf_final_wf<- rf_workflow%>% finalize_workflow(rf_best)
+#Final fit
+rf_final <- rf_final_wf %>% fit(train_data)
+rf_final %>% extract_fit_parsnip() %>% vip(num_features=28)
+fx <- extract_fit_engine(rf_final)
+vip(fx)
+```
+
+## Fitting Test Data
+I decided to choose the random forest model because I wanted to have a little more practice with it and because the rmse values for the models were fairly close.
+```{r}
+final_test <- rf_final %>% last_fit(data_split)
+final_test %>% collect_metrics()
+```
+
