@@ -7,7 +7,7 @@ output:
 
 # Hello
 
-Welcome to my website and online portfolio!!
+Welcome to my website and online portfolio.
 
--   Please use the `Menu Bar` above to look around.
--   It's awesome to meet everyone and let's have a great semester!
+-   Please use the `Menu Bar` above to look around and find examples of my work.
+-   Feel free to contact me with any comments or questions.
